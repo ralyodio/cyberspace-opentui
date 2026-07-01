@@ -2,7 +2,7 @@ import { createCliRenderer, type CliRenderer } from "@opentui/core";
 import { mountShell, type AppShell } from "./app.ts";
 import { createLoginScreen } from "./ui/modals/login.ts";
 import { createReaderView, type ReaderViewHandle } from "./ui/reader/readerView.ts";
-import { createProfileView, type ProfileViewHandle } from "./ui/profile/profileView.ts";
+import { createProfileView } from "./ui/profile/profileView.ts";
 import { loadAuth } from "./auth/store.ts";
 import { getSession, hydrateSession, setTokens, clearSession } from "./auth/session.ts";
 import {

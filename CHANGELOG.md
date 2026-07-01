@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- **Upgraded `@opentui/core` `0.1.97` → `0.4.2`.** Drop-in for this app — no source changes required; `MarkdownRenderable` + `SyntaxStyle` and all renderable/event APIs still work. Verified with `tsc --noEmit` (clean) and a live boot against `api.cyberspace.online`.
+- **Pinned `typescript` to `5.9.3`.** TypeScript 6.0 (latest) can't load the `@types/bun`/`bun-types` declarations (they target TS 5.x), so it drops every Bun/Node global (`Bun`, `fetch`, `URL`, `process`, `setInterval`, `node:*`) and misreads OpenTUI's event types — 22 spurious errors. Type-checking only; `bun dev` runtime was never affected. Revisit once `bun-types` ships TS 6 support.
+- **Pinned `@types/bun` to `^1.3.12`** (was `"latest"`).
+
+### Removed
+- **`web-tree-sitter` dependency.** OpenTUI `0.4` renders markdown with a bundled engine (`marked`) instead of tree-sitter, so the external wasm asset and its `0.25.10` version pin are no longer needed.
+- Unused `ProfileViewHandle` type import in `src/index.ts` (flagged by oxlint).
+
 ## v0.2
 
 ### Added
