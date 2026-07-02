@@ -11,6 +11,10 @@ There is no build, lint, or test script configured. TypeScript is used purely fo
 
 Note: `package.json` declares `"module": "src/index.tsx"` but the actual entry and dev script use `src/index.ts`. Keep the runtime entry at `src/index.ts` unless intentionally switching to JSX.
 
+## Commit conventions
+
+- **Never mention Claude, Anthropic, AI, or any assistant in commit messages** — no `Co-Authored-By: Claude`, no "Generated with…" trailers, no references in the subject or body. Write commit messages as if authored by the human developer.
+
 ## Architecture
 
 This is a terminal UI application built on **OpenTUI** (`@opentui/core`), running on the Bun runtime. Uses OpenTUI's **core imperative API** (class-based `BoxRenderable`, `TextRenderable`, `SelectRenderable`, `InputRenderable`, `ScrollBoxRenderable`), not the React or Solid reconcilers. If you ever introduce JSX, switch the entry to `.tsx` and update the dev script and `"module"` field accordingly.
