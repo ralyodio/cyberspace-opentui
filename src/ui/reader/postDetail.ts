@@ -1,37 +1,27 @@
 import {
   BoxRenderable,
   MarkdownRenderable,
-  parseColor,
   ScrollBoxRenderable,
-  SyntaxStyle,
   TextRenderable,
   type CliRenderer,
   type Renderable,
 } from "@opentui/core";
 import { theme } from "../../theme.ts";
-
-const postSyntaxStyle = SyntaxStyle.fromStyles({
-  default: { fg: parseColor(theme.fg) },
-  "markup.heading": { fg: parseColor(theme.accent), bold: true },
-  "markup.heading.1": { fg: parseColor(theme.accent), bold: true, underline: true },
-  "markup.strong": { fg: parseColor(theme.fg), bold: true },
-  "markup.italic": { fg: parseColor(theme.fg), italic: true },
-  "markup.link": { fg: parseColor(theme.accent), underline: true },
-  "markup.link.label": { fg: parseColor(theme.accent), underline: true },
-  "markup.link.url": { fg: parseColor(theme.accent), underline: true },
-  "markup.raw": { fg: parseColor(theme.fg), bg: parseColor(theme.chipBg) },
-  "markup.raw.inline": { fg: parseColor(theme.fg), bg: parseColor(theme.chipBg) },
-  "markup.list": { fg: parseColor(theme.accent) },
-  "markup.quote": { fg: parseColor(theme.fgDim), italic: true },
-  conceal: { fg: parseColor(theme.fgDim) },
-});
+import { cleanMarkdown, postSyntaxStyle } from "../markdown.ts";
 
 export interface PostDetailModel {
+  postId: string;
   author: string;
   content: string;
   createdAt: Date;
   repliesCount: number;
   topics?: string[];
+}
+
+export interface FocusedDetailItem {
+  kind: "post" | "reply";
+  id: string;
+  author: string;
 }
 
 export interface ReplyModel {
@@ -53,7 +43,8 @@ export interface PostDetailHandle {
   blur(): void;
   focusNext(): void;
   focusPrev(): void;
-  scrollBy(delta: number): void;
+  getFocused(): FocusedDetailItem | null;
+  setRepliesCount(count: number, hasMore?: boolean): void;
 }
 
 function formatAge(d: Date): string {
@@ -67,16 +58,6 @@ function formatAge(d: Date): string {
   if (h < 24) return `${h}h`;
   const dd = Math.floor(h / 24);
   return `${dd}d`;
-}
-
-function cleanMarkdown(content: string): string {
-  return content
-    .replace(/^[ \t]*&nbsp;[ \t]*$/gm, "")
-    .replace(/^[ \t]*\u00A0[ \t]*$/gm, "")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, text, url) =>
-      text === url ? `<${url}>` : m,
-    );
 }
 
 function wordCount(str: string): number {
@@ -124,7 +105,9 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
   let placeholderChild: TextRenderable | null = null;
 
   // Selectable cards (post + replies). focusedIdx is the index into this list.
+  // cardMeta is a parallel array identifying each card for actions like delete.
   const selectableCards: BoxRenderable[] = [];
+  const cardMeta: FocusedDetailItem[] = [];
   let focusedIdx = -1;
   let paneHasFocus = false;
 
@@ -135,6 +118,9 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
     }
     addedChildren.length = 0;
     selectableCards.length = 0;
+    cardMeta.length = 0;
+    postCard = null;
+    repliesHasMore = false;
     focusedIdx = -1;
     if (placeholderChild) {
       scrollBox.remove(placeholderChild.id);
@@ -172,11 +158,14 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
   const nextId = (prefix: string): string => `${prefix}-${uid++}`;
 
   let currentPost: PostDetailModel | null = null;
+  let postCard: BoxRenderable | null = null;
+  let repliesHasMore = false;
 
   function buildPostTitle(post: PostDetailModel): string {
     const words = wordCount(post.content);
     const age = formatAge(post.createdAt);
-    return ` ${post.author.toUpperCase()} / ${words} words / ${post.repliesCount} replies / ${age} `;
+    const count = `${post.repliesCount}${repliesHasMore ? "+" : ""}`;
+    return ` ${post.author.toUpperCase()} / ${words} words / ${count} replies / ${age} `;
   }
 
   function setPost(post: PostDetailModel | null): void {
@@ -246,6 +235,8 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
 
     addChild(card);
     selectableCards.push(card);
+    cardMeta.push({ kind: "post", id: post.postId, author: post.author });
+    postCard = card;
     focusedIdx = paneHasFocus ? 0 : -1;
     applyCardBorders();
   }
@@ -295,8 +286,9 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
         addedChildren.splice(i, 1);
       }
     }
-    // Trim the post card from selectable list — we'll re-add after replies
+    // Trim to just the post card — replies are re-added below.
     selectableCards.length = Math.min(selectableCards.length, 1);
+    cardMeta.length = Math.min(cardMeta.length, 1);
 
     const divider = new BoxRenderable(renderer, {
       id: nextId("pd-divider"),
@@ -315,6 +307,7 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
       const card = buildReplyCard(renderer, reply, nextId);
       addChild(card);
       selectableCards.push(card);
+      cardMeta.push({ kind: "reply", id: reply.id, author: reply.author });
     }
     applyCardBorders();
   }
@@ -338,8 +331,16 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
     if (selectableCards.length === 0) return;
     setFocusedIdx(focusedIdx - 1);
   }
-  function scrollBy(delta: number): void {
-    scrollBox.scrollBy({ x: 0, y: delta });
+  function getFocused(): FocusedDetailItem | null {
+    if (focusedIdx < 0) return null;
+    return cardMeta[focusedIdx] ?? null;
+  }
+
+  function setRepliesCount(count: number, hasMore = false): void {
+    if (!currentPost || !postCard) return;
+    currentPost.repliesCount = count;
+    repliesHasMore = hasMore;
+    postCard.title = buildPostTitle(currentPost);
   }
 
   // Initial empty state
@@ -355,7 +356,8 @@ export function createPostDetail(renderer: CliRenderer): PostDetailHandle {
     blur,
     focusNext,
     focusPrev,
-    scrollBy,
+    getFocused,
+    setRepliesCount,
   };
 }
 
@@ -379,7 +381,6 @@ function buildReplyCard(
     paddingRight: 1,
     paddingTop: 0,
     paddingBottom: 0,
-    marginBottom: 1,
   });
 
   if (reply.parentAuthor && reply.parentSnippet) {

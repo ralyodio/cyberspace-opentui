@@ -2,6 +2,7 @@ import {
   BoxRenderable,
   SelectRenderable,
   SelectRenderableEvents,
+  TextAttributes,
   TextRenderable,
   type CliRenderer,
   type SelectOption,
@@ -15,6 +16,7 @@ export interface PostRow {
   createdAt: Date;
   hasAudio?: boolean;
   topics?: string[];
+  repliesCount?: number;
 }
 
 export interface PostListHandle {
@@ -22,7 +24,9 @@ export interface PostListHandle {
   select: SelectRenderable;
   setRows(rows: PostRow[]): void;
   getSelected(): PostRow | null;
+  selectById(id: string): void;
   onSelectionChange(fn: (row: PostRow | null) => void): () => void;
+  setNewCount(count: number): void;
   focus(): void;
   blur(): void;
   setWidthPct(pct: number): void;
@@ -91,6 +95,16 @@ export function createPostList(renderer: CliRenderer): PostListHandle {
     backgroundColor: theme.bg,
   });
 
+  const newBanner = new TextRenderable(renderer, {
+    id: "post-list-new-banner",
+    content: "",
+    height: 0,
+    fg: theme.accent,
+    bg: theme.bg,
+    attributes: TextAttributes.BOLD,
+    flexShrink: 0,
+  });
+
   const headerRow = new BoxRenderable(renderer, {
     id: "post-list-header",
     flexDirection: "row",
@@ -142,6 +156,7 @@ export function createPostList(renderer: CliRenderer): PostListHandle {
     fastScrollStep: 10,
   });
 
+  root.add(newBanner);
   root.add(headerRow);
   root.add(select);
 
@@ -189,6 +204,21 @@ export function createPostList(renderer: CliRenderer): PostListHandle {
     return rows[idx] ?? null;
   }
 
+  function selectById(id: string): void {
+    const idx = rows.findIndex((r) => r.id === id);
+    if (idx >= 0) select.setSelectedIndex(idx);
+  }
+
+  function setNewCount(count: number): void {
+    if (count > 0) {
+      newBanner.content = `  ▲ ${count} new ${count === 1 ? "entry" : "entries"} — press N`;
+      newBanner.height = 1;
+    } else {
+      newBanner.content = "";
+      newBanner.height = 0;
+    }
+  }
+
   function emitChange(): void {
     const row = getSelected();
     for (const fn of changeListeners) fn(row);
@@ -230,7 +260,9 @@ export function createPostList(renderer: CliRenderer): PostListHandle {
     select,
     setRows,
     getSelected,
+    selectById,
     onSelectionChange,
+    setNewCount,
     focus,
     blur,
     setWidthPct,

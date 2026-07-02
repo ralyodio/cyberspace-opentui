@@ -7,12 +7,15 @@ A two-pane, Norton-Commander-inspired reader built on [OpenTUI](https://github.c
 
 ## What's in it
 
-- **Reader** — list of latest posts on the left, selected post + replies on the right. Post bodies and replies are rendered as markdown (headings, bold, italic, code, lists, links). Arrow keys navigate cards; `j`/`k` scrolls; Tab or ← → switches pane focus.
+- **Reader** — list of latest posts on the left, selected post + replies on the right. Post bodies and replies are rendered as markdown (headings, bold, italic, code, lists, links). Arrow keys navigate cards; Tab or ← → switches pane focus. Reply counts stay current, and a **"Load N new entries"** banner appears when newer posts arrive (`N` merges them without losing your place).
+- **Compose & reply** — `C` writes a new entry, `R` replies to the selected post. Multi-line editor, `⌃S` to post (with a confirm), `Esc` to cancel.
+- **Delete** — `D` removes your own post or reply (with a confirm). The delete option only shows on content you authored.
 - **Profile** — your own profile (or an author you opened from the reader). Shows stats, bio, location, and the user's posts.
 - **Login** — email/password against `POST /v1/auth/login`. Tokens persisted to `~/.config/cyberspace-tui/auth.json` (0600). Automatic refresh on startup and on any 401.
+- **Snooze mode** — after 10 minutes idle, background polling pauses (shown as `zzz snoozed` in the header) so an unattended terminal stops hitting the API. Any keypress resumes it.
 - **Context-aware footer** — shortcuts shown at the bottom always reflect the currently focused surface.
 
-Compose/reply/bookmarks are not wired yet. Inline image rendering is not implemented.
+Bookmarks and inline image rendering are not implemented yet.
 
 ## Dependencies
 
@@ -37,8 +40,11 @@ Keys:
 |---------|------|
 | Anywhere | `⌃R` Reader · `⌃P` Profile · `⌃Q` quit |
 | Login | Tab switches field · Enter advances / submits · Esc quits |
-| Reader — list focused | `↑ ↓` navigate · `→` or Tab switches to detail · `U` open author · `[ ]` resize |
-| Reader — detail focused | `↑ ↓` navigate cards · `j k` scroll · `←` or Tab switches to list |
+| Reader | `C` new entry · `R` reply · `D` delete own · `G` refresh · `N` load new entries · `U` open author · `[ ]` resize |
+| Reader — list focused | `↑ ↓` navigate · `→` or Tab switches to detail |
+| Reader — detail focused | `↑ ↓` navigate cards · `←` or Tab switches to list |
+| Compose | `⌃S` post · `Esc` cancel |
+| Confirm dialog | `← →` / `Tab` move · `Enter` yes · `Esc` no |
 
 ## Configuration
 
@@ -46,6 +52,7 @@ Keys:
 |------|-------|
 | API base URL | hard-coded to `https://api.cyberspace.online` in `src/api/client.ts` |
 | Token storage | `~/.config/cyberspace-tui/auth.json` (0600) |
+| Settings (reader column width) | `~/.config/cyberspace-tui/settings.json` |
 | Theme | `src/theme.ts` |
 
 Sign out by deleting the auth file:

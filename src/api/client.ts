@@ -55,12 +55,14 @@ async function doFetch<T>(path: string, opts: ApiFetchOptions, idToken: string |
   const payload: unknown = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
 
   if (!res.ok) {
-    const message = (isJson && payload && typeof payload === "object" && "message" in payload && typeof (payload as { message?: unknown }).message === "string"
-      ? (payload as { message: string }).message
-      : res.statusText) || `HTTP ${res.status}`;
-    const code = isJson && payload && typeof payload === "object" && "code" in payload && typeof (payload as { code?: unknown }).code === "string"
-      ? (payload as { code: string }).code
-      : undefined;
+    // The API renders errors as { error: { code, message } }; keep a top-level
+    // fallback for any endpoint that doesn't wrap, then fall back to statusText.
+    const record = isJson && payload && typeof payload === "object" ? (payload as Record<string, unknown>) : null;
+    const nested = record && typeof record.error === "object" && record.error !== null ? (record.error as Record<string, unknown>) : null;
+    const pickString = (...vals: unknown[]): string | undefined =>
+      vals.find((v): v is string => typeof v === "string" && v.length > 0);
+    const message = pickString(nested?.message, record?.message, res.statusText) ?? `HTTP ${res.status}`;
+    const code = pickString(nested?.code, record?.code);
     throw new ApiError(message, res.status, code);
   }
 

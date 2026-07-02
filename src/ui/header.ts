@@ -4,6 +4,7 @@ import { theme } from "../theme.ts";
 export interface HeaderHandle {
   root: BoxRenderable;
   setActiveTab(idx: number): void;
+  setSnoozed(snoozed: boolean): void;
 }
 
 const TABS = [
@@ -46,6 +47,14 @@ export function createHeader(renderer: CliRenderer): HeaderHandle {
     return text;
   });
 
+  const snooze = new TextRenderable(renderer, {
+    id: "header-snooze",
+    content: "",
+    fg: theme.fgMuted,
+    bg: theme.barBg,
+    marginRight: 1,
+  });
+
   const wordmark = new TextRenderable(renderer, {
     id: "wordmark",
     content: "CYBERSPACE",
@@ -54,6 +63,7 @@ export function createHeader(renderer: CliRenderer): HeaderHandle {
   });
 
   root.add(tabsBox);
+  root.add(snooze);
   root.add(wordmark);
 
   function setActiveTab(idx: number): void {
@@ -66,5 +76,9 @@ export function createHeader(renderer: CliRenderer): HeaderHandle {
     });
   }
 
-  return { root, setActiveTab };
+  function setSnoozed(snoozed: boolean): void {
+    snooze.content = snoozed ? "zzz snoozed" : "";
+  }
+
+  return { root, setActiveTab, setSnoozed };
 }

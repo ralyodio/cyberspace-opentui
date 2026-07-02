@@ -68,3 +68,56 @@ export async function getUserPosts(
     auth: true,
   });
 }
+
+export interface CreatePostInput {
+  content: string;
+  title?: string;
+  slug?: string;
+  topics?: string[];
+  isPublic?: boolean;
+  isNSFW?: boolean;
+}
+
+export interface CreatePostResult {
+  postId: string;
+  slug: string;
+  title?: string;
+}
+
+export async function createPost(input: CreatePostInput): Promise<CreatePostResult> {
+  const res = await apiFetch<Single<CreatePostResult>>("/v1/posts", {
+    method: "POST",
+    body: input,
+    auth: true,
+  });
+  return res.data;
+}
+
+export interface CreateReplyInput {
+  postId: string;
+  content: string;
+  parentReplyId?: string;
+}
+
+export async function createReply(input: CreateReplyInput): Promise<{ replyId: string }> {
+  const res = await apiFetch<Single<{ replyId: string }>>("/v1/replies", {
+    method: "POST",
+    body: input,
+    auth: true,
+  });
+  return res.data;
+}
+
+export async function deletePost(postId: string): Promise<void> {
+  await apiFetch<unknown>(`/v1/posts/${encodeURIComponent(postId)}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
+
+export async function deleteReply(replyId: string): Promise<void> {
+  await apiFetch<unknown>(`/v1/replies/${encodeURIComponent(replyId)}`, {
+    method: "DELETE",
+    auth: true,
+  });
+}
