@@ -20,7 +20,7 @@ Bookmarks and inline image rendering are not implemented yet.
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ralyodio/cyberspace-opentui/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/unremarkablegarden/cyberspace-opentui/main/install.sh | sh
 ```
 
 Then run it with `cyberspace`.
@@ -33,10 +33,10 @@ The same script takes a command; through a pipe, pass it after `sh -s --`:
 
 ```bash
 # update to the latest main
-curl -fsSL https://raw.githubusercontent.com/ralyodio/cyberspace-opentui/main/install.sh | sh -s -- update
+curl -fsSL https://raw.githubusercontent.com/unremarkablegarden/cyberspace-opentui/main/install.sh | sh -s -- update
 
 # uninstall
-curl -fsSL https://raw.githubusercontent.com/ralyodio/cyberspace-opentui/main/install.sh | sh -s -- remove
+curl -fsSL https://raw.githubusercontent.com/unremarkablegarden/cyberspace-opentui/main/install.sh | sh -s -- remove
 ```
 
 `update` and `upgrade` are the same command, as are `remove` and `uninstall`. `sh -s -- help` lists everything.
@@ -53,7 +53,7 @@ Both commands are safe to run more than once, and neither will touch a `cyberspa
 | `CYBERSPACE_SRC_DIR` | `~/.local/share/cyberspace-opentui` | where the source goes |
 | `CYBERSPACE_CMD` | `cyberspace` | the command name to install as |
 | `CYBERSPACE_REF` | `main` | branch or tag to install |
-| `CYBERSPACE_REPO` | `ralyodio/cyberspace-opentui` | fork to install from |
+| `CYBERSPACE_REPO` | `unremarkablegarden/cyberspace-opentui` | fork to install from |
 | `CYBERSPACE_NO_BUN_INSTALL` | unset | set it to fail instead of installing Bun |
 
 ## Dependencies

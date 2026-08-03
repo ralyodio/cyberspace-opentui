@@ -1,7 +1,7 @@
 #!/bin/sh
 # cyberspace-opentui installer
 #
-#   curl -fsSL https://raw.githubusercontent.com/ralyodio/cyberspace-opentui/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/unremarkablegarden/cyberspace-opentui/main/install.sh | sh
 #
 # Commands (through a pipe, pass them after `sh -s --`):
 #   install              install the client (default)
@@ -19,10 +19,10 @@
 
 set -eu
 
-REPO="${CYBERSPACE_REPO:-ralyodio/cyberspace-opentui}"
+REPO="${CYBERSPACE_REPO:-unremarkablegarden/cyberspace-opentui}"
 REF="${CYBERSPACE_REF:-main}"
 CMD="${CYBERSPACE_CMD:-cyberspace}"
-SCRIPT_URL="https://raw.githubusercontent.com/ralyodio/cyberspace-opentui/main/install.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/unremarkablegarden/cyberspace-opentui/main/install.sh"
 CONFIG_DIR="$HOME/.config/cyberspace-tui"
 
 # Written into every launcher this script generates. `remove` refuses to delete
